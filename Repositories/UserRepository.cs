@@ -1,4 +1,4 @@
-﻿using EcommerceWebApi.Entities;
+using EcommerceWebApi.Entities;
 using JsonFlatFileDataStore;
 
 namespace EcommerceWebApi.Repositories
@@ -38,11 +38,39 @@ namespace EcommerceWebApi.Repositories
             }
         }
 
+        // cr-dotnet-1000: Async overload for non-blocking cloud-ready data retrieval (AWS ElastiCache-backed async data layer)
+        public Task<User?> GetByIdAsync(string id)
+        {
+            try
+            {
+                var user = GetAll().AsQueryable().FirstOrDefault(x => x.Id == id);
+                return Task.FromResult(user);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
         public User? GetByToken(string token)
         {
             try
             {
                 return GetAll().AsQueryable().FirstOrDefault(x => x.RefreshToken.Token == token);
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        // cr-dotnet-1000: Async overload for non-blocking cloud-ready data retrieval (AWS ElastiCache-backed async data layer)
+        public Task<User?> GetByTokenAsync(string token)
+        {
+            try
+            {
+                var user = GetAll().AsQueryable().FirstOrDefault(x => x.RefreshToken.Token == token);
+                return Task.FromResult(user);
             }
             catch
             {

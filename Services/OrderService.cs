@@ -1,4 +1,4 @@
-﻿using EcommerceWebApi.Entities;
+using EcommerceWebApi.Entities;
 using EcommerceWebApi.Utilities;
 using System.Reflection;
 
@@ -8,11 +8,15 @@ namespace EcommerceWebApi.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ProductService _productService;
+        // cr-dotnet-0048: Replaced ClickOnce deployment with S3 + CloudFront distribution.
+        // Application update checks are now performed via CloudFrontUpdateService using AWS SDK.
+        private readonly IUpdateService _updateService;
 
-        public OrderService(UnitOfWork unitOfWork, ProductService productService)
+        public OrderService(UnitOfWork unitOfWork, ProductService productService, IUpdateService updateService)
         {
             _unitOfWork = unitOfWork;
             _productService = productService;
+            _updateService = updateService;
         }
 
         public enum OrderResult
@@ -268,6 +272,22 @@ namespace EcommerceWebApi.Services
                 _unitOfWork.AbortTransaction();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Checks for application updates via CloudFront CDN (replaces ClickOnce update check).
+        /// </summary>
+        public async Task<bool> CheckForUpdateAsync()
+        {
+            return await _updateService.IsUpdateAvailableAsync();
+        }
+
+        /// <summary>
+        /// Downloads and applies the latest application package from S3 via CloudFront (replaces ClickOnce update).
+        /// </summary>
+        public async Task ApplyUpdateAsync()
+        {
+            await _updateService.ApplyUpdateAsync();
         }
 
         public void Dispose()

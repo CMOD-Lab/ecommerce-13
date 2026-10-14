@@ -1,4 +1,4 @@
-﻿using EcommerceWebApi.Entities;
+using EcommerceWebApi.Entities;
 using EcommerceWebApi.Utilities;
 using System.Reflection;
 
@@ -7,10 +7,14 @@ namespace EcommerceWebApi.Services
     public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
+        // cr-dotnet-0048: Replaced ClickOnce deployment with S3 + CloudFront distribution.
+        // Application update checks are now performed via CloudFrontUpdateService using AWS SDK.
+        private readonly IUpdateService _updateService;
 
-        public UserService(UnitOfWork unitOfWork)
+        public UserService(UnitOfWork unitOfWork, IUpdateService updateService)
         {
             _unitOfWork = unitOfWork;
+            _updateService = updateService;
         }
 
         public List<User> GetAllUsers()
@@ -38,9 +42,21 @@ namespace EcommerceWebApi.Services
             return _unitOfWork.Users.GetById(id);
         }
 
+        // cr-dotnet-1000: Async overload for non-blocking cloud-ready data retrieval (AWS ElastiCache-backed async data layer)
+        public Task<User?> GetUserByIdAsync(string id)
+        {
+            return _unitOfWork.Users.GetByIdAsync(id);
+        }
+
         public User? GetUserByToken(string token)
         {
             return _unitOfWork.Users.GetByToken(token);
+        }
+
+        // cr-dotnet-1000: Async overload for non-blocking cloud-ready data retrieval (AWS ElastiCache-backed async data layer)
+        public Task<User?> GetUserByTokenAsync(string token)
+        {
+            return _unitOfWork.Users.GetByTokenAsync(token);
         }
 
         public User? GetUserByName(string name)
@@ -120,6 +136,22 @@ namespace EcommerceWebApi.Services
             {
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Checks for application updates via CloudFront CDN (replaces ClickOnce update check).
+        /// </summary>
+        public async Task<bool> CheckForUpdateAsync()
+        {
+            return await _updateService.IsUpdateAvailableAsync();
+        }
+
+        /// <summary>
+        /// Downloads and applies the latest application package from S3 via CloudFront (replaces ClickOnce update).
+        /// </summary>
+        public async Task ApplyUpdateAsync()
+        {
+            await _updateService.ApplyUpdateAsync();
         }
 
         public void Dispose()

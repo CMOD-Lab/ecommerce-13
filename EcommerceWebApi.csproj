@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
@@ -7,7 +8,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<!-- cr-dotnet-0048: Added AWSSDK.S3 to support S3 + CloudFront update distribution (replaces ClickOnce) -->
+		<PackageReference Include="AWSSDK.S3" Version="3.7.305.4" />
 		<PackageReference Include="JsonFlatFileDataStore" Version="2.4.2" />
+		<!-- cr-dotnet-1014: Added Polly for retry policy on transient HTTP failures (503/timeout) in AWS cloud -->
+		<PackageReference Include="Polly" Version="8.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.20" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.10" />
 		<PackageReference Include="Otp.NET" Version="1.3.0" />
